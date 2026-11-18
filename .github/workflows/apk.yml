@@ -8,9 +8,6 @@ on:
 jobs:
   apk:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: HSHPDF-Android
     steps:
       - uses: actions/checkout@v4
 
@@ -30,4 +27,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: HSHPDF-apk
-          path: HSHPDF-Android/app/build/outputs/apk/debug/app-debug.apk
+          path: app/build/outputs/apk/debug/app-debug.apk
