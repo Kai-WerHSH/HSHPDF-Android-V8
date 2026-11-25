@@ -1,30 +1,49 @@
-name: Compilar APK
+name: Compilar APK e publicar Release
 
 on:
   push:
     branches: [ main, master ]
+    tags:
+      - "v*"
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   apk:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Baixar código
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v4
+      - name: Configurar Java
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      - uses: gradle/actions/setup-gradle@v4
+      - name: Configurar Gradle
+        uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.9
 
-      - name: Compilar
+      - name: Compilar APK
         run: gradle --no-daemon assembleDebug
 
-      - name: Guardar o APK
+      - name: Preparar APK para a versão
+        run: cp app/build/outputs/apk/debug/app-debug.apk "MeuPDF-${GITHUB_REF_NAME}.apk"
+
+      - name: Guardar APK nos artefatos
         uses: actions/upload-artifact@v4
         with:
           name: HSHPDF-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: MeuPDF-${{ github.ref_name }}.apk
+
+      - name: Criar Release e anexar APK
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v3
+        with:
+          name: MeuPDF ${{ github.ref_name }}
+          generate_release_notes: true
+          files: MeuPDF-${{ github.ref_name }}.apk
